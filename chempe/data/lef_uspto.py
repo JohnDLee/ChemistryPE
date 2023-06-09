@@ -1,7 +1,7 @@
 # File: lef_uspto.py
 # File Created: Thursday, 8th June 2023 3:32:41 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Friday, 9th June 2023 3:20:29 pm
+# Last Modified: Friday, 9th June 2023 3:24:30 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Class for parsing LEF USPTO dataset in data folder
@@ -71,7 +71,3 @@ class LEF_USPTO:
         return len(self.rxn_data)
         
         
-if __name__ == '__main__':
-    
-    lef = LEF_USPTO(DataVariants.TRAIN)
-    print(lef.to_pandas())

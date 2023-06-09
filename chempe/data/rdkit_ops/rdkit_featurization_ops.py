@@ -1,10 +1,10 @@
 # File: rdkit_featurization_ops.py
 # File Created: Friday, 9th June 2023 2:28:18 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Friday, 9th June 2023 2:34:13 pm
+# Last Modified: Friday, 9th June 2023 3:24:12 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
-# Description: Atom features functions. Taken from https://github.com/john-bradshaw/electro/tree/master/rxn_steps/data/rdkit_ops. Certain dependencies and functions are removed.
+# Description: Atom features functions. Taken from https://github.com/john-bradshaw/electro/tree/master/rxn_steps/data/rdkit_ops. Certain dependencies and functions for graph neural networks are removed.
 
 
 
