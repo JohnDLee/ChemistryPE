@@ -1,7 +1,7 @@
 # File: lef_uspto.py
 # File Created: Thursday, 8th June 2023 3:32:41 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Friday, 9th June 2023 3:24:30 pm
+# Last Modified: Monday, 12th June 2023 5:34:06 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Class for parsing LEF USPTO dataset in data folder
@@ -33,6 +33,8 @@ class LEF_USPTO:
         
         # transformations
         self.transforms = transforms
+        
+        self.data_path = data_path
             
     def __getitem__(self, idx: typing.Union[int, typing.Iterable]):
         """Retrieves item

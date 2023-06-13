@@ -1,3 +1,6 @@
 # unzipped data folder
 data/lef_uspto/
 scratch/
+
+# api keys
+api_keys_personal.sh

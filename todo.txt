@@ -1,0 +1,2 @@
+Change s.t. test set is the same for all tests to be directly comparable
+Implement CoT.
