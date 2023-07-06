@@ -1,7 +1,7 @@
 # File: run_baseline.py
 # File Created: Friday, 9th June 2023 3:26:23 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Monday, 12th June 2023 5:41:57 pm
+# Last Modified: Wednesday, 5th July 2023 12:58:28 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Runs baseline Zero Shot test.
@@ -9,11 +9,13 @@
 from chempe.data.lef_uspto import LEF_USPTO, DataVariants
 from chempe.data.transforms import TransformStrToBrokenDownParts
 from chempe.data.warnings import disable_warnings
-from chempe.models.llm import generate_response_by_gpt35
+from chempe.models.llm import generate_response_by_gpt, ModelVariants
 
 import numpy as np
 import openai
 import os
+import argparse
+import tqdm
 
 from pathlib import Path
 from collections import defaultdict
@@ -33,23 +35,32 @@ def create_prompt(reactants, reagents):
     return prompt
 
 if __name__ == '__main__':
+    
+    # cmd line args
+    parser = argparse.ArgumentParser(description="Runs a baseline test for few shot training")
+    parser.add_argument("--gpt4", dest="use_gpt4", action="store_true", default = False, help = "Flag to use gpt4. Default: False (gpt3.5)")
+    
+    args = parser.parse_args()
     # disable rdkit warnings
     disable_warnings()
     
     # retrieve test data
     test_data = LEF_USPTO(DataVariants.TEST, transforms=[TransformStrToBrokenDownParts()])
     
-    
     # randomly select 20 test prompts
-    n = 10
-    test_indices = np.load(str(test_data.data_path.parent / "test_indices.npy"), allow_pickle=True)[:n]
+    n = int(os.environ['NSAMPLES'])
+    test_indices = np.load(os.environ['TEST_IDX'], allow_pickle=True)[:n]
+    
+    # select model
+    model = ModelVariants.GPT4 if args.use_gpt4 else ModelVariants.GPT3_5
+    print(f"Using model {model}")
     
     # init openai
     openai.api_key = os.environ['OPEN_AI_KEY'] # loaded as environment variable
     
     # storage dir 
-    results_dir = Path(__file__).parent / "results"
-    results_dir.mkdir(exist_ok=True)
+    results_dir = Path(os.environ['RESULTS_DIR']) / "zero_shot" / model.value
+    results_dir.mkdir(exist_ok=True, parents=True)
     
     # save information
     info = defaultdict(dict)
@@ -57,16 +68,20 @@ if __name__ == '__main__':
     # {test: prompt}, {test:(ybar, y)}
     
     # run through openai api
-    for test_idx in test_indices:
-        print(f"Testing {test_idx}")
+    for test_idx in tqdm.tqdm(test_indices, desc = "Test Samples"):
         prompt = create_prompt(test_data[test_idx.item()].reactants, test_data[test_idx.item()].reagents)
         
         # get prompt
-        predicted = generate_response_by_gpt35(prompt, temperature=0, n = 1)
+        predicted = generate_response_by_gpt(prompt=prompt,
+                                             model_engine=ModelVariants.GPT4,
+                                             temperature=float(os.environ['B_TEMP']),
+                                             n=int(os.environ['B_PREDS']))
         
+        # save results into dict
         info['prompts'][test_idx] = prompt
-        info['answers'][test_idx] = (predicted[0], test_data[test_idx.item()].products)
+        info['ground_truth'][test_idx] = test_data[test_idx.item()].products
+        info['predicted'][test_idx] = predicted
     
-    
+    # write to disk
     np.save(str(results_dir / "zero_shot_results.npy"), dict(info), allow_pickle=True)
 

@@ -1,7 +1,7 @@
 # File: transforms.py
 # File Created: Thursday, 8th June 2023 4:18:49 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Friday, 9th June 2023 2:35:44 pm
+# Last Modified: Saturday, 17th June 2023 3:56:42 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Transformations to extract electron paths. Taken from https://github.com/john-bradshaw/electro/blob/master/rxn_steps/data/transforms.py. Certain functions pertaining to adjacency lists are removed
@@ -143,5 +143,8 @@ class TransformToRdKitIntermediates:
         ordered_index_path = [reactant_atom_map_to_idx_map[am] for am in reaction_parts.ordered_am_path]
 
         # 6. Create the final output
+        # convert intermediates to smiles
+        for idx in range(len(intermediates)):
+            intermediates[idx] = Chem.MolToSmiles(intermediates[idx])
         op = RdKitIntermediates(intermediates, reagent_mol, ordered_index_path, reactant_atom_map_to_idx_map)
         return op
