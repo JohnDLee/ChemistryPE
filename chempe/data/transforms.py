@@ -1,7 +1,7 @@
 # File: transforms.py
 # File Created: Thursday, 8th June 2023 4:18:49 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Saturday, 17th June 2023 3:56:42 pm
+# Last Modified: Wednesday, 5th July 2023 6:47:10 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Transformations to extract electron paths. Taken from https://github.com/john-bradshaw/electro/blob/master/rxn_steps/data/transforms.py. Certain functions pertaining to adjacency lists are removed
@@ -34,10 +34,12 @@ class BrokenDownParts(typing.NamedTuple):
 
 
 class RdKitIntermediates(typing.NamedTuple):
+    broken_down_parts: BrokenDownParts
     intermediates: typing.List[Chem.Mol]
     reagents: Chem.Mol
     ordered_indx_path: typing.List[int]
     am_to_idx_map: typing.Mapping[int, int]
+    
 
 """
  ==== Transforms between the different datastructures ====
@@ -146,5 +148,5 @@ class TransformToRdKitIntermediates:
         # convert intermediates to smiles
         for idx in range(len(intermediates)):
             intermediates[idx] = Chem.MolToSmiles(intermediates[idx])
-        op = RdKitIntermediates(intermediates, reagent_mol, ordered_index_path, reactant_atom_map_to_idx_map)
+        op = RdKitIntermediates(reaction_parts, intermediates, reagent_mol, ordered_index_path, reactant_atom_map_to_idx_map)
         return op
