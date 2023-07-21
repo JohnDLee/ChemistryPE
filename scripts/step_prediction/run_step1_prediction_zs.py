@@ -1,7 +1,7 @@
 # File: run_baseline.py
 # File Created: Friday, 9th June 2023 3:26:23 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Wednesday, 5th July 2023 11:53:53 pm
+# Last Modified: Tuesday, 11th July 2023 8:57:35 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Runs baseline Zero Shot test.
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     openai.api_key = os.environ['OPEN_AI_KEY'] # loaded as environment variable
     
     # storage dir 
-    results_dir = Path(os.environ['RESULTS_DIR']) / "step1_prediction_sc_zs" / model.value
+    results_dir = Path(os.environ['RESULTS_DIR']) / "step1_prediction_zs" / model.value
     results_dir.mkdir(exist_ok=True, parents=True)
     
     # save information
@@ -74,8 +74,8 @@ if __name__ == '__main__':
         # get prompt
         predicted = generate_response_by_gpt(prompt=prompt,
                                              model_engine=ModelVariants.GPT4,
-                                             temperature=float(os.environ['SC_TEMP']),
-                                             n=int(os.environ['SC_PREDS']))
+                                             temperature=float(os.environ['B_TEMP']),
+                                             n=int(os.environ['B_PREDS']))
         
         # save results into dict
         info['prompts'][test_idx] = prompt
@@ -83,5 +83,5 @@ if __name__ == '__main__':
         info['predicted'][test_idx] = predicted
     
     # write to disk
-    np.save(str(results_dir / "step1_prediction_sc_zs_results.npy"), dict(info), allow_pickle=True)
+    np.save(str(results_dir / "step1_prediction_zs_results.npy"), dict(info), allow_pickle=True)
 

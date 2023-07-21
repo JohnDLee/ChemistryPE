@@ -1,7 +1,7 @@
 # File: run_baseline.py
 # File Created: Friday, 9th June 2023 3:26:23 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Tuesday, 11th July 2023 9:01:40 pm
+# Last Modified: Tuesday, 11th July 2023 10:52:31 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Runs baseline Few Shot test.
@@ -32,10 +32,12 @@ def create_prompt(test, examples):
     for idx, e in enumerate(examples):
         prompt += f"Reactants: {e.broken_down_parts.reactants}\n"
         prompt += f"Reagents: {e.broken_down_parts.reagents}\n"
-        prompt += f"Intermediate: {e.intermediates[0]}\n"
+        for iidx, intermediate in enumerate(e.intermediates[1:]): # skip first, cause always the same
+            prompt += f"Intermediate {iidx + 1}: {intermediate}\n"
+        prompt += f"Products: {e.broken_down_parts.products}\n"
     prompt += f"Reactants: {test.broken_down_parts.reactants}\n"
     prompt += f"Reagents: {test.broken_down_parts.reagents}\n"
-    prompt += "Intermediate:"
+    prompt += "Intermediate 1:"
     return prompt
 
 if __name__ == '__main__':
@@ -68,7 +70,7 @@ if __name__ == '__main__':
     openai.api_key = os.environ['OPEN_AI_KEY'] # loaded as environment variable
     
     # storage dir 
-    results_dir = Path(os.environ['RESULTS_DIR']) / "step1_prediction" / model.value
+    results_dir = Path(os.environ['RESULTS_DIR']) / "step1_prediction_full" / model.value
     results_dir.mkdir(exist_ok=True, parents=True)
     
     # save information
@@ -88,10 +90,10 @@ if __name__ == '__main__':
 
         info['icl_indices'][test_idx] = train_indices
         info['prompts'][test_idx] = prompt
-        info['ground_truth'][test_idx] = test_data[test_idx.item()].intermediates[0]
+        info['ground_truth'][test_idx] = test_data[test_idx.item()].intermediates[1]
         info['predicted'][test_idx] = predicted
         
-    np.save(str(results_dir / "step1_prediction_results.npy"), dict(info), allow_pickle=True)
+    np.save(str(results_dir / "step1_prediction_full_results.npy"), dict(info), allow_pickle=True)
         
 
 

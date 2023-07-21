@@ -1,7 +1,7 @@
 # File: run_baseline.py
 # File Created: Friday, 9th June 2023 3:26:23 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Tuesday, 11th July 2023 9:01:40 pm
+# Last Modified: Tuesday, 11th July 2023 10:39:41 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Runs baseline Few Shot test.
@@ -22,20 +22,27 @@ from collections import defaultdict
 
 def create_prompt(test, examples):
     
-    prompt = """You are an expert chemist. Your task is to predict the next intermediate molecules in the electron transfer process given the reactants and reagents, several examples, and your experienced reaction prediction knowledge. There are some rules to follow.
-1. Strictly follow the given format, and only respond with an atom mapped SMILES string.
+    prompt = """You are an expert chemist. Your task is to predict the next intermediate product in the electron transfer process or the final product in a reaction given the reactants, reagents, previous intermediates, several examples including intermediate steps, and your experienced reaction prediction knowledge. There are some rules to follow.
+1. Strictly follow the given format, and only respond with an atom mapped SMILES string of the next intermediate.
 2. Numbers immediately following : represent the atom mapping.
 3. A . is used to distinguish between multiple molecules in the SMILES strings.
 4. If no reagents exist, it is left blank.
-5. The resulting intermediates must be be chemically reasonable and valid.
+5. The resulting intermediate must be be chemically reasonable and valid.
+6. If result is the final product of the chemical reaction, append a ? to the start of the SMILES string.
 """
     for idx, e in enumerate(examples):
         prompt += f"Reactants: {e.broken_down_parts.reactants}\n"
         prompt += f"Reagents: {e.broken_down_parts.reagents}\n"
-        prompt += f"Intermediate: {e.intermediates[0]}\n"
+        for iidx, intermediate in enumerate(e.intermediates[1:]): # skip first, cause always the same
+            prompt += f"Intermediate {iidx + 1}: {intermediate}\n"
+        prompt += f"Products: {e.broken_down_parts.products}\n"
     prompt += f"Reactants: {test.broken_down_parts.reactants}\n"
     prompt += f"Reagents: {test.broken_down_parts.reagents}\n"
-    prompt += "Intermediate:"
+    prompt += "Intermediate 1:"
+    return prompt
+
+def add_prompt(prompt, intermediates: list):
+    prompt += f' {intermediates[-1]}\nIntermediate {len(intermediates) + 1}:'
     return prompt
 
 if __name__ == '__main__':
@@ -53,8 +60,9 @@ if __name__ == '__main__':
     train_data = LEF_USPTO(DataVariants.TRAIN, transforms=[TransformStrToBrokenDownParts(), TransformToRdKitIntermediates()])
     test_data = LEF_USPTO(DataVariants.TEST, transforms=[TransformStrToBrokenDownParts(), TransformToRdKitIntermediates()])
     
+
     # select n test prompts
-    n = int(os.environ['NSAMPLES'])
+    n = 2#int(os.environ['NSAMPLES'])
     test_indices = np.load(os.environ['TEST_IDX'], allow_pickle=True)[:n]
 
     # set ICL samples
@@ -68,7 +76,7 @@ if __name__ == '__main__':
     openai.api_key = os.environ['OPEN_AI_KEY'] # loaded as environment variable
     
     # storage dir 
-    results_dir = Path(os.environ['RESULTS_DIR']) / "step1_prediction" / model.value
+    results_dir = Path(os.environ['RESULTS_DIR']) / "cot_prediction_step" / model.value
     results_dir.mkdir(exist_ok=True, parents=True)
     
     # save information
@@ -77,21 +85,41 @@ if __name__ == '__main__':
     # {test: [train]}, {test: prompt}, {test:(ybar, y)}
     
     # run through openai api
+    p = True
     for test_idx in tqdm.tqdm(test_indices, desc="Test Samples", ):
         train_indices = np.random.randint(0, len(train_data), k)
         prompt = create_prompt(test_data[test_idx.item()], train_data[train_indices])
-        predicted = generate_response_by_gpt(prompt=prompt,
-                                             model_engine=model,
-                                             temperature=float(os.environ['B_TEMP']),
-                                             n=int(os.environ['B_PREDS']))
-        # print(prompt)
+        intermediates = []
+        while True:
+            predicted = generate_response_by_gpt(prompt=prompt,
+                                                model_engine=model,
+                                                temperature=float(os.environ['B_TEMP']),
+                                                n=int(os.environ['B_PREDS']))
+            if predicted[0][0] == "?": # if final product
+                print("Final product found.")
+                predicted[0] = predicted[0][1:] # remove ?
+                break
+            intermediates.append(predicted[0])
+            print(f"Predicted {len(intermediates)} intermediates.")
+            if len(intermediates) > 10:
+                print("10 intermediates were found without a final product, giving up.")
+                break
+            
+            prompt = add_prompt(prompt, intermediates)
+            
+        if p:
+            print(prompt)
+            p = False
+            
 
         info['icl_indices'][test_idx] = train_indices
+        info['intermediates'][test_idx] = intermediates
+        info['ground_truth_intermediates'][test_idx] = test_data[test_idx.item()].intermediates[1:]
         info['prompts'][test_idx] = prompt
-        info['ground_truth'][test_idx] = test_data[test_idx.item()].intermediates[0]
+        info['ground_truth'][test_idx] = test_data[test_idx.item()].broken_down_parts.products
         info['predicted'][test_idx] = predicted
         
-    np.save(str(results_dir / "step1_prediction_results.npy"), dict(info), allow_pickle=True)
+    np.save(str(results_dir / "cot_prediction_step_results.npy"), dict(info), allow_pickle=True)
         
 
 
