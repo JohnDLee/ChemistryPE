@@ -1,7 +1,7 @@
 # File: run_baseline.py
 # File Created: Friday, 9th June 2023 3:26:23 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Tuesday, 11th July 2023 10:39:41 pm
+# Last Modified: Friday, 21st July 2023 2:00:56 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Runs baseline Few Shot test.
@@ -67,6 +67,7 @@ if __name__ == '__main__':
 
     # set ICL samples
     k = int(os.environ['KICL'])
+    icl_indices = np.load(os.environ['ICL_IDX'], allow_pickle=True)
     
     # select model
     model = ModelVariants.GPT4 if args.use_gpt4 else ModelVariants.GPT3_5
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     # run through openai api
     p = True
     for test_idx in tqdm.tqdm(test_indices, desc="Test Samples", ):
-        train_indices = np.random.randint(0, len(train_data), k)
+        train_indices = icl_indices[test_idx][:k]
         prompt = create_prompt(test_data[test_idx.item()], train_data[train_indices])
         intermediates = []
         while True:

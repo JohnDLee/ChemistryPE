@@ -1,7 +1,7 @@
 # File: run_baseline.py
 # File Created: Friday, 9th June 2023 3:26:23 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Wednesday, 5th July 2023 7:09:31 pm
+# Last Modified: Friday, 21st July 2023 2:20:53 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Runs an ICL test but w/ extra predictions & increased temperature for self-consistency
@@ -59,6 +59,8 @@ if __name__ == '__main__':
 
     # set ICL samples
     k = int(os.environ['KICL'])
+    icl_indices = np.load(os.environ['ICL_IDX'], allow_pickle=True)
+    
     
     # select model
     model = ModelVariants.GPT4 if args.use_gpt4 else ModelVariants.GPT3_5
@@ -78,13 +80,14 @@ if __name__ == '__main__':
     
     # run through openai api
     for test_idx in tqdm.tqdm(test_indices, desc="Test Samples", ):
-        train_indices = np.random.randint(0, len(train_data), k)
+        train_indices = icl_indices[test_idx][:k]
         prompt = create_prompt(test_data[test_idx.item()], train_data[train_indices])
         
         predicted = generate_response_by_gpt(prompt=prompt,
                                              model_engine=model,
                                              temperature=float(os.environ['SC_TEMP']),
-                                             n=int(os.environ['SC_PREDS']))
+                                             n=int(os.environ['SC_PREDS']),
+                                             retries=10)
         # print(prompt)
 
         info['icl_indices'][test_idx] = train_indices

@@ -1,7 +1,7 @@
 # File: run_baseline.py
 # File Created: Friday, 9th June 2023 3:26:23 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Tuesday, 11th July 2023 10:04:24 pm
+# Last Modified: Monday, 24th July 2023 1:08:25 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Runs baseline Few Shot test.
@@ -37,7 +37,7 @@ def create_prompt(test, examples):
         prompt += f"Products: {e.broken_down_parts.products}\n"
     prompt += f"Reactants: {test.broken_down_parts.reactants}\n"
     prompt += f"Reagents: {test.broken_down_parts.reagents}\n"
-    prompt += "Products:"
+    prompt += "Intermediate 1:"
     return prompt
 
 if __name__ == '__main__':
@@ -61,7 +61,8 @@ if __name__ == '__main__':
     test_indices = np.load(os.environ['TEST_IDX'], allow_pickle=True)[:n]
 
     # set ICL samples
-    k = int(os.environ['KICL'])
+    k = int(os.environ['KICL']) - 1
+    icl_indices = np.load(os.environ['ICL_IDX'], allow_pickle=True)
     
     # select model
     model = ModelVariants.GPT4 if args.use_gpt4 else ModelVariants.GPT3_5
@@ -80,9 +81,9 @@ if __name__ == '__main__':
     # {test: [train]}, {test: prompt}, {test:(ybar, y)}
     
     # run through openai api
-    p = True
+    p = False
     for test_idx in tqdm.tqdm(test_indices, desc="Test Samples", ):
-        train_indices = np.random.randint(0, len(train_data), k)
+        train_indices = icl_indices[test_idx][:k]
         prompt = create_prompt(test_data[test_idx.item()], train_data[train_indices])
         predicted = generate_response_by_gpt(prompt=prompt,
                                              model_engine=model,
@@ -91,12 +92,18 @@ if __name__ == '__main__':
         if p:
             print(prompt)
             p = False
-            
+        
+        # extract products
+        try: 
+            rez = predicted[0].split("Products: ")[-1]
+        except Exception as e:
+            print(f"Could not parse answer: {e}")
+            rez = None
 
         info['icl_indices'][test_idx] = train_indices
         info['prompts'][test_idx] = prompt
         info['ground_truth'][test_idx] = test_data[test_idx.item()].broken_down_parts.products
-        info['predicted'][test_idx] = predicted
+        info['predicted'][test_idx] = [rez]
         
     np.save(str(results_dir / "cot_prediction_results.npy"), dict(info), allow_pickle=True)
         

@@ -8,6 +8,7 @@ export RESULTS_DIR="$MAIN_DIR/results"
 
 # test indices
 export TEST_IDX="$MAIN_DIR/data/test_indices.npy"
+export ICL_IDX="$MAIN_DIR/data/test_ICL_indices.npy"
 
 # number of test samples
 export NSAMPLES=20
