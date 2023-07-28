@@ -1,12 +1,13 @@
 # File: llm.py
 # File Created: Monday, 12th June 2023 3:49:12 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Tuesday, 11th July 2023 9:18:16 pm
+# Last Modified: Thursday, 27th July 2023 8:09:09 am
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Prompt retrieval from open ai
 
 import openai
+import openai.error as err
 import time
 import enum
 
@@ -14,7 +15,7 @@ class ModelVariants(enum.Enum):
     GPT3_5='gpt-3.5-turbo'
     GPT4='gpt-4'
 
-def generate_response_by_gpt(prompt, model_engine: ModelVariants, temperature = 0.5, n = 5, retries = 6):
+def generate_response_by_gpt(prompt, model_engine: ModelVariants, temperature = 0.5, n = 5, retries = 10):
     """Attempts to generate a resmpont by gpt, retrying using exponential wait
 
     Args:
@@ -34,8 +35,8 @@ def generate_response_by_gpt(prompt, model_engine: ModelVariants, temperature = 
                 messages=[{"role": "user", "content": prompt}],
             )
             break
-        except Exception as e:
-            print(f"An exception occurred ({e}). Retrying after {sleep_time} seconds.")
+        except (err.APIError, err.RateLimitError, err.Timeout, err.ServiceUnavailableError) as e:
+            print(f"{e}. Retrying after {sleep_time} seconds.")
             time.sleep(sleep_time)
             sleep_time *= 2
             error = e

@@ -1,7 +1,7 @@
 # File: rdkit_reaction_ops.py
 # File Created: Friday, 9th June 2023 2:29:24 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Friday, 9th June 2023 2:31:29 pm
+# Last Modified: Wednesday, 26th July 2023 10:21:18 am
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Rdkit reaction functions. Taken from https://github.com/john-bradshaw/electro/tree/master/rxn_steps/data/rdkit_ops
@@ -170,7 +170,7 @@ def is_sub_mol_consistent_with_super(sub_mol, super_mol, raise_on_aromatic_chang
                 # 1b,i If part of a ring then we could just have kekulized differently => Maybe inconsistent
                 # so only return False if flag set:
                 if bnd.GetBeginAtom().GetIsAromatic() and bnd.GetEndAtom().GetIsAromatic():
-                    warnings.warn("We potentially are having changes in kekulization.")
+                    #warnings.warn("We potentially are having changes in kekulization.")
                     if raise_on_aromatic_changes:
                         return False
 

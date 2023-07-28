@@ -1,7 +1,7 @@
 # File: lef_uspto.py
 # File Created: Thursday, 8th June 2023 3:32:41 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Monday, 12th June 2023 5:34:06 pm
+# Last Modified: Wednesday, 26th July 2023 10:42:18 am
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Class for parsing LEF USPTO dataset in data folder
@@ -10,7 +10,7 @@ from pathlib import Path
 import enum
 import typing
 
-class DataVariants(enum.Enum):
+class DataVariants(enum.StrEnum):
     TRAIN="filtered_train.txt"
     VAL="filtered_val.txt"
     TEST="filtered_test.txt"
@@ -27,7 +27,7 @@ class LEF_USPTO:
             raise FileNotFoundError(str(data_path) + 'does not exist. Please unzip the provided lef_uspto.zip file.')
         
         # Load variant
-        variant_path = data_path / variant.value
+        variant_path = data_path / variant
         with variant_path.open("r") as f:
             self.rxn_data = f.readlines()
         

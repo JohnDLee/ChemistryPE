@@ -1,0 +1,24 @@
+You are an expert chemist. Your task is to predict the resulting product given the reactants and reagents, several examples, and your experienced reaction prediction knowledge. There are some rules to follow.
+1. Strictly follow the given format, and only respond with an atom mapped SMILES string.
+2. Numbers immediately following : represent the atom mapping.
+3. A . is used to distinguish between multiple reactant, reagent, and product SMILES strings.
+4. If no reagents exist, it is left blank.
+5. The resulting product must be be chemically reasonable and valid.
+Reactants: [Br:12][CH2:13][C:14](=[O:15])[c:16]1[cH:17][cH:18][c:19]([O:22][CH3:23])[cH:20][cH:21]1.[cH:4]1[cH:5][c:6]([CH2:10][SH:11])[cH:7][cH:8][n:9]1
+Reagents: [CH3:1][O-:2].[CH3:24][CH2:25][OH:26].[Na+:3]
+Product: [cH:4]1[cH:5][c:6]([CH2:10][S:11][CH2:13][C:14](=[O:15])[c:16]2[cH:17][cH:18][c:19]([O:22][CH3:23])[cH:20][cH:21]2)[cH:7][cH:8][n:9]1
+Reactants: [Cl:1][c:2]1[n:3][c:4]([NH:14][CH:15]2[CH2:16][CH2:17]2)[n:5][c:6]([NH:10][CH2:11][CH2:12][OH:13])[c:7]1[C:8]#[N:9].[c:27]1([N:33]2[CH2:34][CH2:35][NH:36][CH2:37][CH2:38]2)[cH:28][cH:29][cH:30][cH:31][cH:32]1
+Reagents: [CH2:18]([N:19]([CH:20]([CH3:21])[CH3:22])[CH:23]([CH3:24])[CH3:25])[CH3:26].[O:39]1[CH2:40][CH2:41][O:42][CH2:43][CH2:44]1
+Product: [c:2]1([N:36]2[CH2:35][CH2:34][N:33]([c:27]3[cH:28][cH:29][cH:30][cH:31][cH:32]3)[CH2:38][CH2:37]2)[n:3][c:4]([NH:14][CH:15]2[CH2:16][CH2:17]2)[n:5][c:6]([NH:10][CH2:11][CH2:12][OH:13])[c:7]1[C:8]#[N:9]
+Reactants: [C:1](=[O:2])([O:3][C:4]([CH3:5])([CH3:6])[CH3:7])[N:8]1[CH:9]([CH2:14][OH:15])[CH2:10][CH2:11][CH:12]1[CH3:13].[OH:35][c:36]1[cH:37][cH:38][c:39]([C:40](=[O:41])[O:42][CH3:43])[cH:44][cH:45]1
+Reagents: [O:46]=[C:47]([O:48][CH:49]([CH3:50])[CH3:51])[N:52]=[N:53][C:54]([O:55][CH:56]([CH3:57])[CH3:58])=[O:59].[c:16]1([P:17]([c:18]2[cH:19][cH:20][cH:21][cH:22][cH:23]2)[c:24]2[cH:25][cH:26][cH:27][cH:28][cH:29]2)[cH:30][cH:31][cH:32][cH:33][cH:34]1
+Product: [C:1](=[O:2])([O:3][C:4]([CH3:5])([CH3:6])[CH3:7])[N:8]1[CH:9]([CH2:14][O:15][c:36]2[cH:37][cH:38][c:39]([C:40](=[O:41])[O:42][CH3:43])[cH:44][cH:45]2)[CH2:10][CH2:11][CH:12]1[CH3:13]
+Reactants: [C:22](#[N:23])[NH:24][C:25]([O:26][c:27]1[cH:28][cH:29][cH:30][cH:31][cH:32]1)=[N:33][CH2:34][CH2:35][CH2:36][O:37][c:38]1[cH:39][c:40]([CH2:44][N:45]2[CH2:46][CH2:47][CH2:48][CH2:49][CH2:50]2)[cH:41][cH:42][cH:43]1.[CH3:1][N:2]([CH2:3][CH2:4][CH2:5][NH2:6])[CH2:7][CH2:8][CH:9]([c:10]1[n:11][cH:12][cH:13][cH:14][cH:15]1)[c:16]1[cH:17][cH:18][cH:19][cH:20][cH:21]1
+Reagents: 
+Product: [CH3:1][N:2]([CH2:3][CH2:4][CH2:5][NH:6][C:25]([NH:24][C:22]#[N:23])=[N:33][CH2:34][CH2:35][CH2:36][O:37][c:38]1[cH:39][c:40]([CH2:44][N:45]2[CH2:46][CH2:47][CH2:48][CH2:49][CH2:50]2)[cH:41][cH:42][cH:43]1)[CH2:7][CH2:8][CH:9]([c:10]1[n:11][cH:12][cH:13][cH:14][cH:15]1)[c:16]1[cH:17][cH:18][cH:19][cH:20][cH:21]1
+Reactants: [CH3:1][O:2][c:3]1[c:4]([C:5](=[O:6])[O:7][CH3:8])[cH:9][c:10]([S:13]([NH2:14])(=[O:15])=[O:16])[cH:11][cH:12]1
+Reagents: [CH3:20][OH:21].[ClH:19].[Na+:18].[OH-:17]
+Product: [CH3:1][O:2][c:3]1[c:4]([C:5](=[O:6])[OH:7])[cH:9][c:10]([S:13]([NH2:14])(=[O:15])=[O:16])[cH:11][cH:12]1
+Reactants: [CH:1]([CH3:2])([CH3:3])[NH:4][CH:5]([CH3:6])[CH3:7].[c:13]1([C:19](=[CH:20][CH2:21][C:22](=[O:23])[OH:24])[CH3:25])[cH:14][cH:15][cH:16][cH:17][cH:18]1
+Reagents: [CH2:30]1[O:31][CH2:32][CH2:33][CH2:34]1.[CH2:8]([Li:9])[CH2:10][CH2:11][CH3:12].[CH3:35][CH2:36][CH2:37][CH2:38][CH2:39][CH3:40].[CH:26]([I:27])([CH3:28])[CH3:29].[OH2:41]
+Product:

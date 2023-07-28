@@ -1,0 +1,8 @@
+You are an expert chemist. Your task is to predict the resulting product in this heterolytic linear electron flow topology chemical reaction given the reactants, several examples including intermediate steps, and your experienced reaction prediction knowledge. Heterolytic linear electron flow topology involves pairs of electrons, and each intermediate electron transfer step alternates between remove bonds and add bonds. Additionally, there are some rules to follow.
+1. Follow the given format but only respond with an atom mapped SMILES string representing the final product.
+2. Numbers immediately following : represent the atom mapping.
+3. A . is used to distinguish between multiple molecules in the SMILES strings.
+4. Each intermediate either adds or removes a single bond from the previous step.
+5. The resulting product must be be chemically reasonable and valid.
+Q: The reactants are [CH:1]([CH3:2])([CH3:3])[NH:4][CH:5]([CH3:6])[CH3:7].[c:13]1([C:19](=[CH:20][CH2:21][C:22](=[O:23])[OH:24])[CH3:25])[cH:14][cH:15][cH:16][cH:17][cH:18]1
+A: Lets think step by step.

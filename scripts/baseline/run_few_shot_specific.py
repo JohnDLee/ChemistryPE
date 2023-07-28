@@ -1,28 +1,24 @@
 # File: run_baseline.py
 # File Created: Friday, 9th June 2023 3:26:23 pm
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Friday, 21st July 2023 2:00:47 pm
+# Last Modified: Wednesday, 26th July 2023 12:42:07 pm
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Runs baseline Few Shot test.
 
-from chempe.data.lef_uspto import LEF_USPTO, DataVariants
-from chempe.data.transforms import TransformStrToBrokenDownParts
 from chempe.data.warnings import disable_warnings
-from chempe.models.llm import generate_response_by_gpt, ModelVariants
+from chempe.models.llm import generate_response_by_gpt
+from chempe.test_management.results import TestManager, Results, ResultVariants
 
-import numpy as np
+
 import openai
 import argparse
 import tqdm
 import os
 
-from pathlib import Path
-from collections import defaultdict
-
 def create_prompt(test, examples):
     
-    prompt = """You are an expert chemist. Your task is to predict the resulting product in this Linear Electron Flow reaction given the reactants and reagents, several examples, and your experienced reaction prediction knowledge. There are some rules to follow.
+    prompt = """You are an expert chemist. Your task is to predict the resulting product in this heterolytic linear electron flow topology chemical reaction given the reactants and reagents, several examples, and your experienced reaction prediction knowledge. Heterolytic linear electron flow topology involves pairs of electrons, and each intermediate electron transfer step alternates between remove bonds and add bonds. There are some rules to follow.
 1. Strictly follow the given format, and only respond with an atom mapped SMILES string.
 2. Numbers immediately following : represent the atom mapping.
 3. A . is used to distinguish between multiple SMILES strings.
@@ -30,70 +26,68 @@ def create_prompt(test, examples):
 5. The resulting product must be be chemically reasonable and valid.
 """
     for idx, e in enumerate(examples):
-        prompt += f"Reactants: {e.reactants}\n"
-        prompt += f"Reagents: {e.reagents}\n"
-        prompt += f"Product: {e.products}\n"
-    prompt += f"Reactants: {test.reactants}\n"
-    prompt += f"Reagents: {test.reagents}\n"
+        prompt += f"Reactants: {e.broken_down_parts.reactants}\n"
+        prompt += f"Reagents: {e.broken_down_parts.reagents}\n"
+        prompt += f"Product: {e.broken_down_parts.products}\n"
+    prompt += f"Reactants: {test.broken_down_parts.reactants}\n"
+    prompt += f"Reagents: {test.broken_down_parts.reagents}\n"
     prompt += "Product:"
     return prompt
 
 if __name__ == '__main__':
     
-    # cmd line args
+        # cmd line args
     parser = argparse.ArgumentParser(description="Runs a baseline test for few shot training")
-    parser.add_argument("--gpt4", dest="use_gpt4", action="store_true", default = False, help = "Flag to use gpt4. Default: False (gpt3.5)")
+    parser.add_argument("-root", dest="root", default=".", help="Root Project Dir")
+    parser.add_argument("--gpt35", dest="use_gpt35", action="store_true", default = False, help = "Flag to use gpt4. Default: False (gpt3.5)")
+    parser.add_argument("--rand", dest='random', action="store_true", default=False, help = 'Use random ICL values. Default: False (Scaffold)')
     
     args = parser.parse_args()
     
     # disable rdkit warnings
     disable_warnings()
     
-    # retrieve train/test data
-    train_data = LEF_USPTO(DataVariants.TRAIN, transforms=[TransformStrToBrokenDownParts()])
-    test_data = LEF_USPTO(DataVariants.TEST, transforms=[TransformStrToBrokenDownParts()])
+    TM = TestManager(proj_root=args.root,
+                     gpt4=not args.use_gpt35,
+                     scaffold=not args.random,
+                     self_consistency=False)
     
-    # select n test prompts
-    n = int(os.environ['NSAMPLES'])
-    test_indices = np.load(os.environ['TEST_IDX'], allow_pickle=True)[:n]
-
-    # set ICL samples
-    k = int(os.environ['KICL'])
-    icl_indices = np.load(os.environ['ICL_IDX'], allow_pickle=True)
+    print(f"Using model {TM.model}")
     
-    # select model
-    model = ModelVariants.GPT4 if args.use_gpt4 else ModelVariants.GPT3_5
-    print(f"Using model {model}")
-    
-    # init openai
-    openai.api_key = os.environ['OPEN_AI_KEY'] # loaded as environment variable
+    # openai key
+    openai.api_key = os.environ['OPEN_AI_KEY']
     
     # storage dir 
-    results_dir = Path(os.environ['RESULTS_DIR']) / "few_shot_specific" / model.value
-    results_dir.mkdir(exist_ok=True, parents=True)
-    
-    # save information
-    info = defaultdict(dict)
-    # indices, prompts, answers
-    # {test: [train]}, {test: prompt}, {test:(ybar, y)}
+    results = Results(proj_root=args.root,
+                      header="baseline",
+                      model=TM.model,
+                      scaffold=TM.scaffold,
+                      filters=['few_shot_specific'],
+                      variant=ResultVariants.VANILLA)
     
     # run through openai api
-    for test_idx in tqdm.tqdm(test_indices, desc="Test Samples", ):
-        train_indices = icl_indices[test_idx][:k]
-        prompt = create_prompt(test_data[test_idx.item()], train_data[train_indices])
-        
-        predicted = generate_response_by_gpt(prompt=prompt,
-                                             model_engine=model,
-                                             temperature=float(os.environ['B_TEMP']),
-                                             n=int(os.environ['B_PREDS']))
-        # print(prompt)
+    for idx, (test_idx, test_data, train_data) in tqdm.tqdm(enumerate(TM.sample), desc="Test Samples", total = len(TM.sample)):
+        while True:
+            try:
+                prompt = create_prompt(test_data, train_data)
+                predicted = generate_response_by_gpt(prompt=prompt,
+                                                    model_engine=TM.model,
+                                                    temperature=TM.temp,
+                                                    n=TM.num_preds)
+                break
+            except openai.error.InvalidRequestError as e:
+                if "Please reduce your prompt; or completion length." in str(e):
+                    # shorten by 1
+                    print(e)
+                    train_data = train_data[:-1]
+                else:
+                    raise e
+            
 
-        info['icl_indices'][test_idx] = train_indices
-        info['prompts'][test_idx] = prompt
-        info['ground_truth'][test_idx] = test_data[test_idx.item()].products
-        info['predicted'][test_idx] = predicted
+        results.store(test_indice=test_idx,
+                      prompt=prompt,
+                      gt=test_data.broken_down_parts.products,
+                      predicted=predicted,
+                      icl_indices=TM.icl_indices[idx])
         
-    np.save(str(results_dir / "few_shot_specific_results.npy"), dict(info), allow_pickle=True)
-        
-
-
+    results.save()

@@ -1,7 +1,7 @@
 # File: compute_train_scaffolds.py
 # File Created: Friday, 21st July 2023 9:12:25 am
 # Author: John Lee (jlee88@nd.edu)
-# Last Modified: Friday, 21st July 2023 10:23:48 am
+# Last Modified: Wednesday, 26th July 2023 10:47:03 am
 # Modified By: John Lee (jlee88@nd.edu>)
 # 
 # Description: Computes and saves the scaffold fingerprints for the training data
@@ -40,8 +40,7 @@ if __name__ == '__main__':
         target_smiles = test_data[test_idx][0]
         similar_mols.append(top_n_scaffold_similar_molecules(target_smiles,fingerprints,n))
                 
-    
-    np.save(os.path.join(os.environ['MAIN_DIR'], "data/test_ICL_indices.npy"), similar_mols, allow_pickle=True)
+    np.save(str(test_data.data_path.parent / "test_ICL_indices.npy"), similar_mols, allow_pickle=True)
     
     
         

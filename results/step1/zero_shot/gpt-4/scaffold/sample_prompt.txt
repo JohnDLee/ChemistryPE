@@ -1,0 +1,7 @@
+You are an expert chemist. Your task is to predict the kekulized form of the Reactants using your experienced reaction prediction knowledge. There are some rules to follow.
+1. Strictly follow the given format, and only respond with an atom mapped SMILES string.
+2. Numbers immediately following : represent the atom mapping.
+3. A . is used to distinguish between multiple molecules in the SMILES strings.
+4. The resulting kekulized form SMILES must be be chemically reasonable and valid.
+Reactants: [CH:1]([CH3:2])([CH3:3])[NH:4][CH:5]([CH3:6])[CH3:7].[c:13]1([C:19](=[CH:20][CH2:21][C:22](=[O:23])[OH:24])[CH3:25])[cH:14][cH:15][cH:16][cH:17][cH:18]1
+Kekulized:
